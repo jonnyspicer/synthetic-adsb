@@ -16,6 +16,7 @@ This package simulates a synthetic ADS-B (Automatic Dependent Surveillance–Bro
 - Flask 3.0.2
 - Flask-CORS 4.0.0
 - Requests 2.31.0
+- python-dotenv 1.0.1
 
 Install dependencies with:
 
@@ -23,17 +24,51 @@ Install dependencies with:
 pip install -r requirements.txt
 ```
 
+## Configuration
+
+Both `server.py` and `bridge.py` are now configured via environment variables. You must create a `.env` file in the project root (see `.env.example` for a template). Example:
+
+```ini
+# --- For server.py ---
+TX_LAT=-34.9810
+TX_LON=138.7081
+TX_ALT=750
+FC_MHZ=204.64
+RADIUS_DEG=0.05
+ANGULAR_SPEED=0.01
+ALT_BARO_FT=30000
+ICAO_HEX=AEF123
+HOST=0.0.0.0
+PORT=5001
+
+# --- For bridge.py ---
+ADSB_JSON_HOST=http://localhost:5001
+ADSB_JSON_PATH=/data/aircraft.json
+ADSB2DD_URL=http://192.168.0.219:49155/api/dd
+POLL_RATE_HZ=1.0
+RADARS=[{"id": "rx1", "lat": -34.9192, "lon": 138.6027, "alt": 110}, {"id": "rx2", "lat": -34.9315, "lon": 138.6967, "alt": 408}, {"id": "rx3", "lat": -34.8414, "lon": 138.7237, "alt": 230}]
+TX={"lat": -34.9810, "lon": 138.7081, "alt": 750}
+FC_MHZ=204.64
+```
+
+**Note:** All variables are required. The bridge expects `RADARS` and `TX` as JSON strings.
+
 ## Usage
 
-1. **Start the Synthetic ADS-B Server**
+1. **Set up your environment**
+
+   - Copy `.env.example` to `.env` and edit as needed.
+   - Ensure all required variables are set.
+
+2. **Start the Synthetic ADS-B Server**
 
    ```bash
    python server.py
    ```
 
-   This will serve synthetic aircraft data at `http://localhost:5001/data/aircraft.json`.
+   This will serve synthetic aircraft data at `http://<HOST>:<PORT>/data/aircraft.json` (default: `http://localhost:5001/data/aircraft.json`).
 
-2. **Run the Bridge and Radar APIs**
+3. **Run the Bridge and Radar APIs**
 
    ```bash
    python bridge.py
@@ -41,7 +76,7 @@ pip install -r requirements.txt
 
    This will poll the synthetic ADS-B feed, compute delay–Doppler measurements, and start API endpoints for each radar.
 
-3. **Access Radar Data**
+4. **Access Radar Data**
    - Each radar exposes endpoints (e.g., `/data`, `/status`, `/api/detection`, `/api/config`) on its own port (default: 49158, 49159, 49160).
 
 ## Example
